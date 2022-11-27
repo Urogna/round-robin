@@ -1,207 +1,197 @@
-import Head from "next/head";
-import Image from "next/image";
-import { useMemo, useState } from "react";
-import styles from "../styles/Home.module.css";
+import Head from 'next/head';
+import Image from 'next/image';
+import { useMemo, useState } from 'react';
+import styles from '../styles/Home.module.css';
 
 export default function Home() {
-	const [teams, setTeams] = useState(["A", "B", "C", "D"]);
-	const games = useMemo(() => {
-		const games: { teams: [string, string]; score: [number, number] | null }[] =
-			[];
-		for (let i = 0; i < teams.length - 1; i++) {
-			for (let j = i + 1; j < teams.length; j++) {
-				if (i === 0 && j === 1) {
-					games.push({ teams: [teams[i], teams[j]], score: [3, 0] });
-				} else if (i === 0 && j === 2) {
-					games.push({ teams: [teams[i], teams[j]], score: [1, 1] });
-				} else if (i === 0 && j === 3) {
-					games.push({ teams: [teams[i], teams[j]], score: [0, 3] });
-				} else if (i === 2 && j === 3) {
-					games.push({ teams: [teams[i], teams[j]], score: [3, 0] });
-				} else {
-					games.push({ teams: [teams[i], teams[j]], score: null });
-				}
-			}
-		}
-		return games;
-	}, [teams]);
-	// const permutator = (inputArr) => {
-	// 	let result = [];
+  const [teams, setTeams] = useState(['A', 'B', 'C', 'D']);
+  const games = useMemo(() => {
+    const games: { teams: [string, string]; score: [number, number] | null }[] = [];
+    for (let i = 0; i < teams.length - 1; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        if (i === 0 && j === 1) {
+          games.push({ teams: [teams[i], teams[j]], score: [3, 0] });
+        } else if (i === 0 && j === 2) {
+          games.push({ teams: [teams[i], teams[j]], score: [1, 1] });
+        } else if (i === 0 && j === 3) {
+          games.push({ teams: [teams[i], teams[j]], score: [0, 3] });
+        } else if (i === 2 && j === 3) {
+          games.push({ teams: [teams[i], teams[j]], score: [3, 0] });
+        } else {
+          games.push({ teams: [teams[i], teams[j]], score: null });
+        }
+      }
+    }
+    return games;
+  }, [teams]);
+  // const permutator = (inputArr) => {
+  // 	let result = [];
 
-	// 	const permute = (arr, m = []) => {
-	// 		if (arr.length === 0) {
-	// 			result.push(m);
-	// 		} else {
-	// 			for (let i = 0; i < arr.length; i++) {
-	// 				let curr = arr.slice();
-	// 				let next = curr.splice(i, 1);
-	// 				permute(curr.slice(), m.concat(next));
-	// 			}
-	// 		}
-	// 	};
+  // 	const permute = (arr, m = []) => {
+  // 		if (arr.length === 0) {
+  // 			result.push(m);
+  // 		} else {
+  // 			for (let i = 0; i < arr.length; i++) {
+  // 				let curr = arr.slice();
+  // 				let next = curr.splice(i, 1);
+  // 				permute(curr.slice(), m.concat(next));
+  // 			}
+  // 		}
+  // 	};
 
-	// 	permute(inputArr);
+  // 	permute(inputArr);
 
-	// 	return result;
-	// };
+  // 	return result;
+  // };
 
-	const calculateRoundRobinPermutations = () => {
-		const possibleScores = [
-			[3, 0],
-			[1, 1],
-			[0, 3],
-		];
-		const resolvedIdxs = [];
-		const unresolvedGames = games.filter((game, idx) => {
-			if (!game.score) {
-				return true;
-			}
-			resolvedIdxs.push(idx);
-			return false;
-		});
-		const numberOfScores = Math.pow(
-			possibleScores.length,
-			unresolvedGames.length
-		);
-		const finalScores = [];
+  const calculateRoundRobinPermutations = () => {
+    const possibleScores = [
+      [3, 0],
+      [1, 1],
+      [0, 3],
+    ];
+    const resolvedIdxs = [];
+    const unresolvedGames = games.filter((game, idx) => {
+      if (!game.score) {
+        return true;
+      }
+      resolvedIdxs.push(idx);
+      return false;
+    });
+    const numberOfScores = Math.pow(possibleScores.length, unresolvedGames.length);
+    const finalScores = [];
 
-		let count = 0;
-		while (count < numberOfScores) {
-			const base3 = count.toString(3).padStart(unresolvedGames.length, "0");
-			const scores = base3.split("").map((n) => possibleScores[parseInt(n)]);
-			resolvedIdxs.forEach((idx) => {
-				scores.splice(idx, 0, games[idx].score);
-			});
-			let obj = {};
-			games.forEach((game, gameIdx) => {
-				game.teams.forEach((team, index) => {
-					obj[team] = obj[team] || 0;
-					obj[team] += scores[gameIdx][index];
-				});
-			});
-			finalScores.push(obj);
-			count++;
-		}
+    let count = 0;
+    while (count < numberOfScores) {
+      const base3 = count.toString(3).padStart(unresolvedGames.length, '0');
+      const scores = base3.split('').map((n) => possibleScores[parseInt(n)]);
+      resolvedIdxs.forEach((idx) => {
+        scores.splice(idx, 0, games[idx].score);
+      });
+      let obj = {};
+      games.forEach((game, gameIdx) => {
+        game.teams.forEach((team, index) => {
+          obj[team] = obj[team] || 0;
+          obj[team] += scores[gameIdx][index];
+        });
+      });
+      finalScores.push(obj);
+      count++;
+    }
 
-		return {
-			finalScores,
-			numberOfScores,
-			total: finalScores.length,
-			statistics: {
-				...teams.reduce(
-					(prev, curr) => ({
-						...prev,
-						[curr]: [
-							finalScores.reduce((prevScore, currScore) => {
-								const teamScore = currScore[curr];
-								const out =
-									Object.entries(currScore)
-										.filter(([team]) => team !== curr)
-										.filter(([team, score]) => {
-											return teamScore > score;
-										}).length >= 2;
+    return {
+      finalScores,
+      numberOfScores,
+      total: finalScores.length,
+      statistics: {
+        ...teams.reduce(
+          (prev, curr) => ({
+            ...prev,
+            [curr]: [
+              finalScores.reduce((prevScore, currScore) => {
+                const teamScore = currScore[curr];
+                const out =
+                  Object.entries(currScore)
+                    .filter(([team]) => team !== curr)
+                    .filter(([team, score]) => {
+                      return teamScore > score;
+                    }).length >= 2;
 
-								const draw =
-									Object.entries(currScore)
-										.filter(([team]) => team !== curr)
-										.filter(([team, score]) => {
-											return teamScore >= score;
-										}).length >= 2;
-								return {
-									out: (prevScore.out || 0) + (out ? 1 : 0),
-									draw: (prevScore.draw || 0) + (draw && !out ? 1 : 0),
-									lost: (prevScore.lost || 0) + (!draw && !out ? 1 : 0),
-								};
-							}, {}),
-						].reduce((_, obj) => {
-							return {
-								win: ((obj.out / finalScores.length) * 100).toFixed(2),
-								draw: ((obj.draw / finalScores.length) * 100).toFixed(2),
+                const draw =
+                  Object.entries(currScore)
+                    .filter(([team]) => team !== curr)
+                    .filter(([team, score]) => {
+                      return teamScore >= score;
+                    }).length >= 2;
+                return {
+                  out: (prevScore.out || 0) + (out ? 1 : 0),
+                  draw: (prevScore.draw || 0) + (draw && !out ? 1 : 0),
+                  lost: (prevScore.lost || 0) + (!draw && !out ? 1 : 0),
+                };
+              }, {}),
+            ].reduce((_, obj) => {
+              return {
+                win: ((obj.out / finalScores.length) * 100).toFixed(2),
+                draw: ((obj.draw / finalScores.length) * 100).toFixed(2),
 
-								lost: ((obj.lost / finalScores.length) * 100).toFixed(2),
-							};
-						}, {}),
-					}),
-					{}
-				),
-			},
-		};
-		// .filter(
-		// 	({ A, B, C, D }) =>
-		// 		// (A >= 3 &&
-		// 		(A >= B && B >= C && B >= D) ||
-		// 		(A >= C && C >= B && C >= D) ||
-		// 		(A >= D && D >= B && D >= C) ||
-		// 		(A <= B && A >= C && A >= D) ||
-		// 		(A <= C && A >= B && A >= D) ||
-		// 		(A <= D && A >= B && A >= C)
-		// ).length
-	};
+                lost: ((obj.lost / finalScores.length) * 100).toFixed(2),
+              };
+            }, {}),
+          }),
+          {},
+        ),
+      },
+    };
+    // .filter(
+    // 	({ A, B, C, D }) =>
+    // 		// (A >= 3 &&
+    // 		(A >= B && B >= C && B >= D) ||
+    // 		(A >= C && C >= B && C >= D) ||
+    // 		(A >= D && D >= B && D >= C) ||
+    // 		(A <= B && A >= C && A >= D) ||
+    // 		(A <= C && A >= B && A >= D) ||
+    // 		(A <= D && A >= B && A >= C)
+    // ).length
+  };
 
-	return (
-		<div className={styles.container}>
-			{JSON.stringify(calculateRoundRobinPermutations(), null, 2)}
-			<Head>
-				<title>Create Next App</title>
-				<meta name="description" content="Generated by create next app" />
-				<link rel="icon" href="/favicon.ico" />
-			</Head>
+  return (
+    <div className={styles.container}>
+      {JSON.stringify(calculateRoundRobinPermutations(), null, 2)}
+      <Head>
+        <title>Create Next App</title>
+        <meta name='description' content='Generated by create next app' />
+        <link rel='icon' href='/favicon.ico' />
+      </Head>
 
-			<main className={styles.main}>
-				<h1 className={styles.title}>
-					Welcome to <a href="https://nextjs.org">Next.js!</a>
-				</h1>
+      <main className={styles.main}>
+        <h1 className={styles.title}>
+          Welcome to <a href='https://nextjs.org'>Next.js!</a>
+        </h1>
 
-				<p className={styles.description}>
-					Get started by editing{" "}
-					<code className={styles.code}>pages/index.tsx</code>
-				</p>
+        <p className={styles.description}>
+          Get started by editing <code className={styles.code}>pages/index.tsx</code>
+        </p>
 
-				<div className={styles.grid}>
-					<a href="https://nextjs.org/docs" className={styles.card}>
-						<h2>Documentation &rarr;</h2>
-						<p>Find in-depth information about Next.js features and API.</p>
-					</a>
+        <div className={styles.grid}>
+          <a href='https://nextjs.org/docs' className={styles.card}>
+            <h2>Documentation &rarr;</h2>
+            <p>Find in-depth information about Next.js features and API.</p>
+          </a>
 
-					<a href="https://nextjs.org/learn" className={styles.card}>
-						<h2>Learn &rarr;</h2>
-						<p>Learn about Next.js in an interactive course with quizzes!</p>
-					</a>
+          <a href='https://nextjs.org/learn' className={styles.card}>
+            <h2>Learn &rarr;</h2>
+            <p>Learn about Next.js in an interactive course with quizzes!</p>
+          </a>
 
-					<a
-						href="https://github.com/vercel/next.js/tree/canary/examples"
-						className={styles.card}
-					>
-						<h2>Examples &rarr;</h2>
-						<p>Discover and deploy boilerplate example Next.js projects.</p>
-					</a>
+          <a href='https://github.com/vercel/next.js/tree/canary/examples' className={styles.card}>
+            <h2>Examples &rarr;</h2>
+            <p>Discover and deploy boilerplate example Next.js projects.</p>
+          </a>
 
-					<a
-						href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-						className={styles.card}
-					>
-						<h2>Deploy &rarr;</h2>
-						<p>
-							Instantly deploy your Next.js site to a public URL with Vercel.
-						</p>
-					</a>
-				</div>
-			</main>
+          <a
+            href='https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app'
+            target='_blank'
+            rel='noopener noreferrer'
+            className={styles.card}
+          >
+            <h2>Deploy &rarr;</h2>
+            <p>Instantly deploy your Next.js site to a public URL with Vercel.</p>
+          </a>
+        </div>
+      </main>
 
-			<footer className={styles.footer}>
-				<a
-					href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Powered by{" "}
-					<span className={styles.logo}>
-						<Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-					</span>
-				</a>
-			</footer>
-		</div>
-	);
+      <footer className={styles.footer}>
+        <a
+          href='https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Powered by{' '}
+          <span className={styles.logo}>
+            <Image src='/vercel.svg' alt='Vercel Logo' width={72} height={16} />
+          </span>
+        </a>
+      </footer>
+    </div>
+  );
 }
